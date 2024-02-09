@@ -1,31 +1,40 @@
 import requests
 from io import BytesIO
-import tabula
+import pdfplumber
 import pandas
+from pandas import DataFrame
 
 class UAC:
     def __init__(self, year):
+        self.year = year
         url = f'https://www.uac.edu.tw/{year}data/{year}_result_school_data.pdf'
         response = requests.get(url)
         io = BytesIO(response.content)
-        pages = tabula.read_pdf(io, pages='all')
-        pdf = pandas.concat(pages)
+        pdf = pdfplumber.open(io)
+        tables = [
+            DataFrame(page.extract_table())
+            for page in pdf.pages
+        ]
+        for table in tables:
+            table.columns = table.iloc[0].tolist()
+            table.drop(0, inplace=True)
+        table = pandas.concat(tables)
 
-        schools = pdf['校名'].tolist()
+        schools = table['校名'].tolist()
         schools = [
-            school.replace('\r', '')
+            school.replace('\n', '')
             for school in schools
         ]
-        pdf['校名'] = schools
+        table['校名'] = schools
 
-        departments = pdf['系組名'].tolist()
+        departments = table['系組名'].tolist()
         departments = [
-            department.replace('\r', '')
+            department.replace('\n', '')
             for department in departments
         ]
-        pdf['系組名'] = departments
+        table['系組名'] = departments
 
-        weights = pdf['採計及加權'].tolist()
+        weights = table['採計及加權'].tolist()
         weights = [
             sum(
                 float(rate.split('x')[-1])
@@ -33,7 +42,7 @@ class UAC:
             )
             for weight in weights
         ]
-        scores = pdf['普通生\r錄取分數'].tolist()
+        scores = table['普通生\n錄取分數'].tolist()
         scores = [
             0 if score == '-----' else float(score)
             for score in scores
@@ -42,13 +51,13 @@ class UAC:
             round(score / weight, 2)
             for score, weight in zip(scores, weights)
         ]
-        pdf['平均'] = averages
+        table['平均'] = averages
 
-        pdf = pdf[['校名', '系組名', '平均']].copy()
-        self.pdf = pdf
+        table = table[['校名', '系組名', '平均']].copy()
+        self.table = table
     def get_average(self, school_name, department_name):
-        mask = (self.pdf['校名'] == school_name) & (self.pdf['系組名'] == department_name)
-        result = self.pdf[mask]
+        mask = (self.table['校名'] == school_name) & (self.table['系組名'] == department_name)
+        result = self.table[mask]
         if result.empty:
             return ''
         return result['平均'].tolist()[0]
