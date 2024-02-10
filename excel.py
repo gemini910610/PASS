@@ -3,7 +3,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Alignment, PatternFill, DEFAULT_FONT, Border, Side
 from openpyxl.formatting.rule import CellIsRule
 
-def write_excel(year, scores, excel, new_standards, old_standards):
+def write_excel(year, screen_result_year, scores, excel, new_standards, old_standards):
     subjects = ['國', '英', '數A', '數B', '社', '自']
 
     subject_set = set()
@@ -69,7 +69,7 @@ def write_excel(year, scores, excel, new_standards, old_standards):
     end = col_number + 1
     left = get_column_letter(start)
     right = get_column_letter(end)
-    sheet[f'{left}1'] = '通過篩選分數'
+    sheet[f'{left}1'] = f'{screen_result_year}通過篩選分數'
     sheet.merge_cells(f'{left}1:{right}1')
 
     start = end + 1

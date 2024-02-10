@@ -19,3 +19,10 @@ class UniversityTW:
             subject, score = td.text.split('=')
             result[subject] = score
         return result
+    def support_year(self):
+        url = 'https://university-tw.ldkrsi.men/caac/001/001012'
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        tag = soup.find(lambda tag: tag.name == 'dt' and '篩選結果' in tag.text)
+        year = int(tag.text[:3])
+        return year
