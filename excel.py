@@ -3,7 +3,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Alignment, PatternFill, DEFAULT_FONT, Border, Side
 from openpyxl.formatting.rule import CellIsRule
 
-def write_excel(year, screen_result_year, scores, excel, new_standards, old_standards):
+def write_excel(year, screen_result_year, scores, excel, new_standards, old_standards, filename):
     subjects = ['國', '英', '數A', '數B', '社', '自']
 
     subject_set = set()
@@ -440,7 +440,7 @@ def write_excel(year, screen_result_year, scores, excel, new_standards, old_stan
             ]
         ])
     
-    wb.save(f'{year-1}.xlsx')
+    wb.save(filename)
 
 def set_range_style(sheet, range, set_func, *args):
     for row in sheet[range]:
