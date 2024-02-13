@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 class UniversityTW:
+    __slots__ = ['year']
     def __init__(self, year):
         self.year = year
     def get_screen_result(self, department_id):

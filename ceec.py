@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import pandas
 
 class CEEC:
+    __slots__ = []
     def __init__(self):
         pass
     def get_standards(self, year):

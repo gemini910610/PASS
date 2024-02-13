@@ -1,8 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
-from tqdm.rich import tqdm
+from progress import Progress
 
 class CAC:
+    __slots__ = ['year', 'host']
     def __init__(self, year):
         self.year = year
         url = f'https://www.cac.edu.tw/apply{year}/query.php'
@@ -73,7 +74,7 @@ class CAC:
 
         url = f'{self.host}/findgsd.php'
         departments = {}
-        for group in tqdm(group_departments):
+        for group in Progress(group_departments):
             data = {
                 'GsdName': group,
                 'gcode': group_code

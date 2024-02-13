@@ -5,6 +5,7 @@ import pandas
 from pandas import DataFrame
 
 class UAC:
+    __slots__ = ['year', 'table']
     def __init__(self, year):
         self.year = year
         url = f'https://www.uac.edu.tw/{year}data/{year}_result_school_data.pdf'
