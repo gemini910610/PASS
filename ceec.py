@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-import pandas
+import xlrd
 
 class CEEC:
     __slots__ = []
@@ -18,31 +18,26 @@ class CEEC:
         a = soup.find(string='各科成績標準一覽表').parent
         
         url = a['href']
-        df = pandas.read_excel(url)
-
+        response = requests.get(url)
+        wb = xlrd.open_workbook(file_contents=response.content)
+        sheet = wb.sheet_by_index(0)
+        row = sheet.row_values(1)
         subjects = ['國文', '英文', '數學A', '數學B', '社會', '自然']
-        cols = df.iloc[0].tolist()
-        rename_index = {
-            '年度': 0,
-            **{
-                subject: cols.index(subject)
-                for subject in subjects
-            }
-        }
-
-        cols = df.columns
-        rename_cols = {
-            cols[index]: name
-            for name, index in rename_index.items()
-        }
-        df = df.rename(columns=rename_cols)
-
-        index = df[df['年度'] == year].index[0]
-        standards = {
-            subject: df[index:index+5][subject].tolist()
+        subject_index = {
+            subject: row.index(subject)
             for subject in subjects
         }
 
+        index = sheet.col_values(0).index(year)
+        standards = {
+            subject: []
+            for subject in subjects
+        }
+        for i in range(5):
+            row = sheet.row_values(index+i)
+            for subject in subjects:
+                standard = int(row[subject_index[subject]])
+                standards[subject].append(standard)
         return standards
     def request(self, url):
         response = requests.get(url)
