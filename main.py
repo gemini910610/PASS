@@ -10,6 +10,8 @@ def line():
     default_terminal_columns = os.get_terminal_size().columns
     print('\033[38;2;75;75;75m' + '─' * default_terminal_columns + '\033[0m')
 
+os.system('cls')
+
 year = int(input('請輸入\033[36m年份\033[0m：'))
 line()
 
