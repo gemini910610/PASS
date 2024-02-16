@@ -4,9 +4,10 @@ from utw import UniversityTW
 from ceec import CEEC
 from excel import write_excel
 from progress import Progress
+import os
 
 def line():
-    default_terminal_columns = 80
+    default_terminal_columns = os.get_terminal_size().columns
     print('\033[38;2;75;75;75m' + '─' * default_terminal_columns + '\033[0m')
 
 year = int(input('請輸入\033[36m年份\033[0m：'))
@@ -17,6 +18,7 @@ for subject in ['國文', '英文', '數學A', '數學B', '社會', '自然']:
     score = int(input(f'請輸入\033[36m{subject}\033[0m級分：'))
     scores.append(score)
 score = input(f'請輸入\033[36m英聽\033[0m成績：')
+scores.append(score)
 line()
 
 cac = CAC(year)
@@ -29,12 +31,22 @@ for i, group in enumerate(groups):
     length = width - len(group)
     print(f'{i+1:>2}. {group}{"  "*length}', end=end)
 print()
-group_index = int(input('請輸入\033[36m學群編號\033[0m：')) - 1
-group_name, group_code = list(groups.items())[group_index]
+print('請輸入\033[36m學群編號\033[0m（以空格隔開）')
+group_indexes = input('').split(' ')
+group_indexes = [int(index) - 1 for index in group_indexes]
+groups = list(groups.items())
+groups = [groups[index] for index in group_indexes]
 line()
 
-print(f'正在取得\033[32m{group_name}\033[0m校系列表...')
-departments = cac.get_departments_by_group(group_code)
+departments = {}
+for group_name, group_code in groups:
+    print(f'正在取得\033[32m{group_name}\033[0m校系列表...')
+    group_departments = cac.get_departments_by_group(group_code)
+    for school_name, school_departments in group_departments.items():
+        group_schools = departments.get(school_name, {})
+        group_schools.update(school_departments)
+        departments[school_name] = group_schools
+
 # print(f'正在整理校系...')
 departments = [
     (school_name, department_name, department_id)
@@ -55,6 +67,14 @@ averages = {
     department_id: uac.get_average(school_name, department_name)
     for school_name, department_name, department_id in departments
 }
+school_averages = {}
+for school_name, department_name, department_id in departments:
+    max_average = school_averages.get(school_name, 0)
+    average = averages[department_id]
+    if average == '':
+        average = 0
+    max_average = max(max_average, average)
+    school_averages[school_name] = max_average
 
 print(f'正在取得個人申請篩選結果...')
 utw = UniversityTW(year - 1)
@@ -87,9 +107,11 @@ excel = [
     )
     for school_name, department_name, department_id in departments
 ]
+excel.sort(key=lambda x: (-school_averages[x[0]], x[2]))
 # line()
 
 print('正在寫入檔案...')
+filename = f'{year}{"+".join(group_name[:-2] for group_name, group_code in groups)}學群學測標準.xlsx'
 write_excel(
     year,
     screen_result_year,
@@ -97,8 +119,8 @@ write_excel(
     excel,
     new_standards,
     old_standards,
-    f'{year}{group_name}學測標準.xlsx'
+    filename
 )
-print(f'已將結果寫入\033[32m{year}{group_name}學測標準.xlsx\033[0m')
+print(f'已將結果寫入\033[32m{filename}\033[0m')
 line()
 input('請按\033[36mEnter鍵[↵]\033[0m繼續...')

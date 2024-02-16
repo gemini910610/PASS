@@ -1,3 +1,5 @@
+import os
+
 class Progress:
     class Color:
         purple = '\033[38;5;5m'
@@ -29,7 +31,7 @@ class Progress:
         self.complete()
         print('\033[?25h', end='')
     def message(self, complete=False):
-        default_terminal_columns = 80
+        default_terminal_columns = os.get_terminal_size().columns
         number = self.Color.colored(f'{self.index:>{self.number_width}}/{self.length}', self.number_color)
         percentage = 100 * self.index // self.length
         percent = self.Color.colored(f'{percentage:>3}%', self.percent_color)
